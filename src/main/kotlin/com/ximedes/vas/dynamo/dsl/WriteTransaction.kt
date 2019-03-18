@@ -4,24 +4,6 @@ import kotlinx.coroutines.future.await
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.*
 
-suspend fun testApi(client: DynamoDbAsyncClient) {
-    val response = client.writeTransaction {
-        put("table1") {
-            item {
-                "a" from 1
-            }
-        }
-        update("table2") {
-            key {
-                "id" from 123L
-            }
-            update("SET balance = balance - :a") {
-                ":a" from 2
-            }
-
-        }
-    }
-}
 
 suspend fun DynamoDbAsyncClient.writeTransaction(block: TransactWriteItemsRequestBuilder.() -> Unit): TransactWriteItemsResponse {
     val request = TransactWriteItemsRequestBuilder().apply(block).build()
@@ -61,6 +43,10 @@ class PutBuilder(tableName: String) {
         builder.conditionExpression(expression)
     }
 
+    fun attributes(init: ItemBuilder.() -> Unit) {
+        builder.expressionAttributeValues(ItemBuilder().apply(init).build())
+    }
+
 }
 
 @DynamoDbDSL
@@ -73,8 +59,15 @@ class UpdateBuilder(tableName: String) {
         builder.key(ItemBuilder().apply(init).build())
     }
 
-    fun update(expression: String, init: ItemBuilder.() -> Unit) {
+    fun update(expression: String) {
         builder.updateExpression(expression)
+    }
+
+    fun condition(expression: String) {
+        builder.conditionExpression(expression)
+    }
+
+    fun attributes(init: ItemBuilder.() -> Unit) {
         builder.expressionAttributeValues(ItemBuilder().apply(init).build())
     }
 
