@@ -2,10 +2,12 @@ package com.ximedes.vas.domain
 
 private val accountIDRegex = Regex("""ACC-(.*)""")
 
-fun String.extractAccountID() = AccountID(accountIDRegex.matchEntire(this)!!.groupValues.last())
+inline class AccountID(private val id: String) {
+    companion object {
+        fun fromDynamo(s: String) = AccountID(accountIDRegex.matchEntire(s)!!.groupValues.last())
+    }
 
-inline class AccountID(val id: String) {
-    fun toPK() = "ACC-${id}"
+    fun toPK() = "ACC-$id"
 }
 
 data class Account(

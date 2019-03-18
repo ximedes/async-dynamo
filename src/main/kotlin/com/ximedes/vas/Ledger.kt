@@ -9,4 +9,5 @@ class Ledger {
         .credentialsProvider(ProfileCredentialsProvider.create())
         .region(Region.EU_WEST_1)
         .build()
+
 }

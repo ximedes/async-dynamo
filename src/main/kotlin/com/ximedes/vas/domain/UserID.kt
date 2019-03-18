@@ -2,8 +2,10 @@ package com.ximedes.vas.domain
 
 private val userIDRegex = Regex("""USER-(.*)""")
 
-fun String.extractUserID() = UserID(userIDRegex.matchEntire(this)!!.groupValues.last())
+inline class UserID(private val id: String) {
+    companion object {
+        fun fromDynamo(s: String) = UserID(userIDRegex.matchEntire(s)!!.groupValues.last())
+    }
 
-inline class UserID(val id: String) {
-    fun toPK() = "USER-${id}"
+    fun toPK() = "USER-$id"
 }
