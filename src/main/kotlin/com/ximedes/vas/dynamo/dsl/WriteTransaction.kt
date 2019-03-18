@@ -57,6 +57,9 @@ class PutBuilder(tableName: String) {
         builder.item(ItemBuilder().apply(init).build())
     }
 
+    fun condition(expression: String) {
+        builder.conditionExpression(expression)
+    }
 
 }
 

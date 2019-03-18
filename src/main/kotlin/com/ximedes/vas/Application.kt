@@ -57,6 +57,7 @@ fun Application.module() {
                         "overdraft" from newAccountMessage.overdraft
                         "description" from newAccountMessage.description
                     }
+                    condition("attribute_not_exists(sk)")
                 }
 
             }
