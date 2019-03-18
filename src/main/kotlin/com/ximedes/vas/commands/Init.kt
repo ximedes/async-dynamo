@@ -1,13 +1,13 @@
-package com.ximedes.vas.dynamo
+package com.ximedes.vas.commands
 
-import com.ximedes.vas.dynamo.dsl.createTable
+import com.ximedes.vas.Ledger
+import com.ximedes.vas.dsl.createTable
 import kotlinx.coroutines.future.await
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.KeyType
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 
-suspend fun initTables(client: DynamoDbAsyncClient) {
+suspend fun Ledger.init() {
 
     val tables = client.listTables().await().tableNames()
 

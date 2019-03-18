@@ -1,4 +1,4 @@
-package com.ximedes.vas.dynamo.dsl
+package com.ximedes.vas.dsl
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest

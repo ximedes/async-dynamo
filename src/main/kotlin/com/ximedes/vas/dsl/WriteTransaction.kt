@@ -1,4 +1,4 @@
-package com.ximedes.vas.dynamo.dsl
+package com.ximedes.vas.dsl
 
 import kotlinx.coroutines.future.await
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
