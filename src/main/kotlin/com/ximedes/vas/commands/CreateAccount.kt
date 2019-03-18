@@ -1,18 +1,18 @@
 package com.ximedes.vas.commands
 
 import com.ximedes.vas.Ledger
-import com.ximedes.vas.NewAccountMessage
+import com.ximedes.vas.domain.Account
 import com.ximedes.vas.dsl.writeTransaction
 
-suspend fun Ledger.createAccount(msg: NewAccountMessage) {
+suspend fun Ledger.createAccount(account: Account) {
     client.writeTransaction {
         put("ledger") {
             item {
-                "pk" from "USER-${msg.user}"
-                "sk" from "ACC-${msg.account}"
-                "overdraft" from msg.overdraft
-                "headroom" from msg.overdraft
-                "description" from msg.description
+                "pk" from account.owner.toPK()
+                "sk" from account.id.toPK()
+                "overdraft" from account.overdraft
+                "headroom" from account.overdraft
+                "description" from account.description
             }
             condition("attribute_not_exists(sk)")
         }
