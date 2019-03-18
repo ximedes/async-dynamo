@@ -2,6 +2,7 @@ package com.ximedes.vas
 
 import com.ximedes.vas.commands.createAccount
 import com.ximedes.vas.commands.init
+import com.ximedes.vas.commands.queryUserAccounts
 import com.ximedes.vas.commands.transfer
 import com.ximedes.vas.domain.Account
 import com.ximedes.vas.domain.AccountID
@@ -14,7 +15,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.routing.get
 import io.ktor.routing.post
+import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -45,12 +48,18 @@ fun Application.module() {
     }
 
     routing {
-        post("/account") {
-            val msg = call.receive<NewAccountMessage>()
-            val account = Account(UserID(msg.user), AccountID((msg.account)), 0, msg.overdraft, msg.description)
-            ledger.createAccount(account)
-            call.respond(HttpStatusCode.OK)
+        route("/account") {
+            post {
+                val msg = call.receive<NewAccountMessage>()
+                val account = Account(UserID(msg.user), AccountID((msg.account)), 0, msg.overdraft, msg.description)
+                ledger.createAccount(account)
+                call.respond(HttpStatusCode.OK)
 
+            }
+            get("/{userId}") {
+                val userID = UserID(call.parameters["userId"]!!)
+                call.respond(ledger.queryUserAccounts(userID))
+            }
         }
         post("/transfer") {
             val transferMessage = call.receive<TransferMessage>()
