@@ -3,6 +3,9 @@ package com.ximedes.vas
 import com.ximedes.vas.dynamo.initTables
 import io.ktor.application.Application
 import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.ContentNegotiation
+import io.ktor.jackson.jackson
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -26,7 +29,9 @@ fun Application.module() {
         initTables(client)
     }
 
-    logger.debug { "Y" }
+    install(ContentNegotiation) {
+        jackson { }
+    }
 
     routing {
         get("/") {

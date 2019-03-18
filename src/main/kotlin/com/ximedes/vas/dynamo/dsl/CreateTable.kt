@@ -14,7 +14,7 @@ suspend fun DynamoDbAsyncClient.createTable(
     return createTable(request).await()
 }
 
-
+@DynamoDbDSL
 class CreateTableRequestBuilder(tableName: String) {
     private var _builder = CreateTableRequest.builder().tableName(tableName)
     private val attributeDefinitions = mutableListOf<AttributeDefinition>()

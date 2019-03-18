@@ -8,7 +8,7 @@
     <name>async-dynamo</name>
     <description>async-dynamo</description>
     <properties>
-        <ktor_version>1.1.3</ktor_version>
+        <ktor.version>1.1.3</ktor.version>
         <kotlin_version>1.3.21</kotlin_version>
         <kotlin-logging.version>1.6.24</kotlin-logging.version>
         <logback_version>1.2.1</logback_version>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>io.ktor</groupId>
             <artifactId>ktor-server-netty</artifactId>
-            <version>${ktor_version}</version>
+            <version>${ktor.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.microutils</groupId>
@@ -54,8 +54,14 @@
         <dependency>
             <groupId>io.ktor</groupId>
             <artifactId>ktor-server-tests</artifactId>
-            <version>${ktor_version}</version>
+            <version>${ktor.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-jackson</artifactId>
+            <version>${ktor.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

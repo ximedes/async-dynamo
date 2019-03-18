@@ -17,7 +17,7 @@ fun update(tableName: String, init: UpdateBuilder.() -> Unit): Update {
     return builder.build()
 }
 
-
+@DynamoDbDSL
 class PutItemRequestBuilder(private val builder: PutItemRequest.Builder) {
 
     fun condition(condition: () -> String) {
