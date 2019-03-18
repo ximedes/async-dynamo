@@ -24,7 +24,8 @@ suspend fun testApi(client: DynamoDbAsyncClient) {
 }
 
 suspend fun DynamoDbAsyncClient.writeTransaction(block: TransactWriteItemsRequestBuilder.() -> Unit): TransactWriteItemsResponse {
-    return transactWriteItems(TransactWriteItemsRequestBuilder().apply(block).build()).await()
+    val request = TransactWriteItemsRequestBuilder().apply(block).build()
+    return transactWriteItems(request).await()
 }
 
 @DynamoDbDSL
@@ -40,15 +41,15 @@ class TransactWriteItemsRequestBuilder() {
     }
 
     fun put(tableName: String, block: PutBuilder.() -> Unit) {
-        val put = PutBuilder().apply(block).build()
+        val put = PutBuilder(tableName).apply(block).build()
         writeItems.add(TransactWriteItem.builder().put(put).build())
     }
 
 }
 
 @DynamoDbDSL
-class PutBuilder {
-    private val builder = Put.builder()
+class PutBuilder(tableName: String) {
+    private val builder = Put.builder().tableName(tableName)
 
     fun build(): Put = builder.build()
 

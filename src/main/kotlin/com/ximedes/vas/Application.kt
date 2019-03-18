@@ -6,15 +6,17 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
+import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 
@@ -29,7 +31,7 @@ fun Application.module() {
     val logger = KotlinLogging.logger {}
 
     val client = DynamoDbAsyncClient.builder()
-            .credentialsProvider(DefaultCredentialsProvider.create())
+        .credentialsProvider(ProfileCredentialsProvider.create())
             .region(Region.EU_WEST_1)
             .build()
 
@@ -51,19 +53,14 @@ fun Application.module() {
                 put("ledger") {
                     item {
                         "pk" from "USER-${newAccountMessage.user}"
+                        "sk" from "ACC-${newAccountMessage.account}"
+                        "overdraft" from newAccountMessage.overdraft
+                        "description" from newAccountMessage.description
                     }
-//                    item {
-//                        "sk" from "ACC-${newAccountMessage.account}"
-//                    }
-//                    item {
-//                        "overdraft" from newAccountMessage.overdraft
-//                    }
-//                    item {
-//                        "description" from newAccountMessage.description
-//                    }
                 }
 
             }
+            call.respond(HttpStatusCode.OK)
 
         }
     }
