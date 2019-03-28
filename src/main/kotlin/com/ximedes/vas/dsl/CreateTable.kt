@@ -19,17 +19,23 @@ class CreateTableRequestBuilder(tableName: String) {
     private var _builder = CreateTableRequest.builder().tableName(tableName)
     private val attributeDefinitions = mutableListOf<AttributeDefinition>()
     private val keySchemaElements = mutableListOf<KeySchemaElement>()
+    private val globalSecondaryIndices = mutableListOf<GlobalSecondaryIndex>()
 
-    fun attribute(name: String, type: ScalarAttributeType, keyType: KeyType? = null) {
+    fun attribute(name: String, type: ScalarAttributeType) {
         attributeDefinitions.add(
             AttributeDefinition.builder()
                 .attributeName(name)
                 .attributeType(type)
                 .build()
         )
-        keyType?.let {
-            keySchemaElements.add(KeySchemaElement.builder().attributeName(name).keyType(keyType).build())
-        }
+    }
+
+    fun partitionKey(name: String) {
+        keySchemaElements.add(KeySchemaElement.builder().attributeName(name).keyType(KeyType.HASH).build())
+    }
+
+    fun sortKey(name: String) {
+        keySchemaElements.add(KeySchemaElement.builder().attributeName(name).keyType(KeyType.RANGE).build())
     }
 
     fun throughput(readCapacityUnits: Long, writeCapacityUnits: Long) {
@@ -41,10 +47,21 @@ class CreateTableRequestBuilder(tableName: String) {
         )
     }
 
+    fun globalSecondaryIndex(name: String, init: GlobalSecondaryIndexBuilder.() -> Unit) {
+        val index = GlobalSecondaryIndexBuilder(name).apply(init).build()
+        globalSecondaryIndices.add(index)
+    }
+
+
     fun build(): CreateTableRequest {
         _builder.attributeDefinitions(*attributeDefinitions.toTypedArray())
         _builder.keySchema(*keySchemaElements.toTypedArray())
+        _builder.globalSecondaryIndexes(*globalSecondaryIndices.toTypedArray())
         return _builder.build()
     }
 
+}
+
+enum class ProjectionType {
+    ALL, KEYS_ONLY
 }
