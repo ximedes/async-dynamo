@@ -35,6 +35,7 @@ class PutItemRequestBuilder(private val builder: PutItemRequest.Builder) {
     fun build(): PutItemRequest = builder.build()
 }
 
+@DynamoDbDSL
 class ItemBuilder {
 
     private val item: MutableItem = mutableMapOf()

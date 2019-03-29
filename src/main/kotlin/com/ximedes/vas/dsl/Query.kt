@@ -13,7 +13,12 @@ suspend fun DynamoDbAsyncClient.query(tableName: String, block: QueryRequestBuil
 @DynamoDbDSL
 class QueryRequestBuilder(tableName: String) {
     private val builder = QueryRequest.builder().tableName(tableName)
+
     fun build(): QueryRequest = builder.build()
+
+    fun useIndex(indexName: String) {
+        builder.indexName(indexName)
+    }
 
     fun keyCondition(expression: String) {
         builder.keyConditionExpression(expression)

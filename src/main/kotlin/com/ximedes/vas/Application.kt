@@ -6,6 +6,7 @@ import com.ximedes.vas.commands.queryUserAccounts
 import com.ximedes.vas.commands.transfer
 import com.ximedes.vas.domain.Account
 import com.ximedes.vas.domain.AccountID
+import com.ximedes.vas.domain.Transfer
 import com.ximedes.vas.domain.UserID
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -24,16 +25,9 @@ import mu.KotlinLogging
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-data class NewAccountMessage(val account: String
-                             , val user: String
-                             , val overdraft: Long
-                             , val description: String)
+data class NewAccountMessage(val account: String, val user: String, val overdraft: Long, val description: String)
 
-data class TransferMessage(val fromUser: String
-                           , val toUser: String
-                           , val from: String
-                           , val to: String
-                           , val amount: Int)
+data class TransferMessage(val from: String, val to: String, val amount: Long, val description: String)
 
 fun Application.module() {
     val logger = KotlinLogging.logger {}
@@ -62,8 +56,9 @@ fun Application.module() {
             }
         }
         post("/transfer") {
-            val transferMessage = call.receive<TransferMessage>()
-            ledger.transfer(transferMessage)
+            val msg = call.receive<TransferMessage>()
+            val transfer = Transfer(AccountID(msg.from), AccountID(msg.to), msg.amount, msg.description)
+            ledger.transfer(transfer)
             call.respond(HttpStatusCode.OK)
         }
 
