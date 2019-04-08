@@ -15,7 +15,7 @@ data class Account(
 
 fun Map<String, AttributeValue>.asAccount(): Account {
     val userID = UserID(take("owner_id"))
-    val accountID = AccountID(take("sk"))
+    val accountID = AccountID(take("pk"))
     val overdraft = take<Long>("overdraft")
     val balance = take<Long>("headroom") - overdraft
     val description = take<String>("description")
