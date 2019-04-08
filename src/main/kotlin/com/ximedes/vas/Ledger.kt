@@ -2,7 +2,6 @@ package com.ximedes.vas
 
 import com.ximedes.vas.domain.*
 import com.ximedes.vas.dsl.*
-import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
@@ -18,25 +17,21 @@ class Ledger {
         .build()
 
     suspend fun init() {
-        val tableNames = client.listTables().await().tableNames()
+        client.assertTable("ledger") {
+            attribute("pk", ScalarAttributeType.S)
+            attribute("sk", ScalarAttributeType.S)
+            attribute("owner_id", ScalarAttributeType.S)
 
-        if ("ledger" !in tableNames) {
-            client.createTable("ledger") {
-                attribute("pk", ScalarAttributeType.S)
-                attribute("sk", ScalarAttributeType.S)
-                attribute("owner_id", ScalarAttributeType.S)
+            partitionKey("pk")
+            sortKey("sk")
 
-                partitionKey("pk")
-                sortKey("sk")
+            throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
 
+            globalSecondaryIndex("accounts") {
+                partitionKey("owner_id")
+                sortKey("pk")
+                projection(ProjectionType.ALL)
                 throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
-
-                globalSecondaryIndex("accounts") {
-                    partitionKey("owner_id")
-                    sortKey("pk")
-                    projection(ProjectionType.ALL)
-                    throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
-                }
             }
         }
     }
