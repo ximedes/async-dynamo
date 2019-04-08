@@ -26,10 +26,14 @@ class GlobalSecondaryIndexBuilder(name: String) {
         )
     }
 
+    fun projection(type: ProjectionType, block: (ProjectionBuilder.() -> Unit) = {}) {
+        val projection = ProjectionBuilder(type).apply(block).build()
+        _builder.projection(projection)
+    }
+
 
     fun build(): GlobalSecondaryIndex {
-        val projection = Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build()
-        _builder.keySchema(*keySchemaElements.toTypedArray()).projection(projection)
+        _builder.keySchema(*keySchemaElements.toTypedArray())
         return _builder.build()
     }
 }

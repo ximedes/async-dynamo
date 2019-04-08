@@ -6,6 +6,7 @@ import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.time.Instant
 import java.util.*
@@ -23,6 +24,7 @@ class Ledger {
             client.createTable("ledger") {
                 attribute("pk", ScalarAttributeType.S)
                 attribute("sk", ScalarAttributeType.S)
+                attribute("owner_id", ScalarAttributeType.S)
 
                 partitionKey("pk")
                 sortKey("sk")
@@ -30,8 +32,9 @@ class Ledger {
                 throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
 
                 globalSecondaryIndex("accounts") {
-                    partitionKey("sk")
+                    partitionKey("owner_id")
                     sortKey("pk")
+                    projection(ProjectionType.ALL)
                     throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
                 }
             }
@@ -50,30 +53,28 @@ class Ledger {
     }
 
     suspend fun createAccount(account: Account) {
-        client.writeTransaction {
-            put("ledger") {
-                item {
-                    "pk" from account.owner
-                    "sk" from account.id
-                    "overdraft" from account.overdraft
-                    "headroom" from account.overdraft
-                    "description" from account.description
-                }
-                condition("attribute_not_exists(sk)")
+        client.put("ledger") {
+            item {
+                "pk" from account.id
+                "sk" from account.id
+                "owner_id" from account.owner
+                "overdraft" from account.overdraft
+                "headroom" from account.overdraft
+                "description" from account.description
             }
+            condition("attribute_not_exists(pk)")
         }
     }
 
     suspend fun queryUserAccounts(userID: UserID): List<Account> {
-        val result = client.query("ledger") {
-            keyCondition("pk = :userId and begins_with(sk, :acc)")
+        val response = client.query("ledger") {
+            useIndex("accounts")
+            keyCondition("owner_id = :userId")
             attributes {
                 ":userId" from userID
-                ":acc" from "acc:"
             }
         }
-
-        return result.items().map { it.asAccount() }
+        return response.items().map { it.asAccount() }
 
     }
 
@@ -81,13 +82,10 @@ class Ledger {
         val timeStamp = Instant.now().toEpochMilli()
         val id = UUID.randomUUID().toString()
 
-        val fromUser = findUserIDByAccountID(transfer.from)
-        val toUser = findUserIDByAccountID(transfer.to)
-
         client.writeTransaction {
             update("ledger") {
                 key {
-                    "pk" from fromUser
+                    "pk" from transfer.from
                     "sk" from transfer.from
 
                 }
@@ -101,7 +99,7 @@ class Ledger {
             }
             update("ledger") {
                 key {
-                    "pk" from toUser
+                    "pk" from transfer.to
                     "sk" from transfer.to
 
                 }
@@ -114,7 +112,7 @@ class Ledger {
             put("ledger") {
                 item {
                     "pk" from transfer.from
-                    "sk" from "TX-$timeStamp-$id"
+                    "sk" from "trc:$timeStamp-$id"
                     "id" from id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
@@ -125,7 +123,7 @@ class Ledger {
             put("ledger") {
                 item {
                     "pk" from transfer.to
-                    "sk" from "TX-$timeStamp-$id"
+                    "sk" from "trc:$timeStamp-$id"
                     "id" from id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
