@@ -1,9 +1,5 @@
 package com.ximedes.vas
 
-import com.ximedes.vas.commands.createAccount
-import com.ximedes.vas.commands.init
-import com.ximedes.vas.commands.queryUserAccounts
-import com.ximedes.vas.commands.transfer
 import com.ximedes.vas.domain.Account
 import com.ximedes.vas.domain.AccountID
 import com.ximedes.vas.domain.Transfer
