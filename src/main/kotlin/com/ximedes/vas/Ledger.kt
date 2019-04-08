@@ -1,10 +1,7 @@
 package com.ximedes.vas
 
 import com.ximedes.vas.domain.*
-import com.ximedes.vas.dsl.createTable
-import com.ximedes.vas.dsl.query
-import com.ximedes.vas.dsl.take
-import com.ximedes.vas.dsl.writeTransaction
+import com.ximedes.vas.dsl.*
 import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
@@ -41,6 +38,17 @@ class Ledger {
         }
     }
 
+    suspend fun createUser(user: User) {
+        client.put("ledger") {
+            item {
+                "pk" from user.id
+                "sk" from user.id
+                "email" from user.email
+            }
+            condition("attribute_not_exists(pk)")
+        }
+    }
+
     suspend fun createAccount(account: Account) {
         client.writeTransaction {
             put("ledger") {
@@ -58,9 +66,10 @@ class Ledger {
 
     suspend fun queryUserAccounts(userID: UserID): List<Account> {
         val result = client.query("ledger") {
-            keyCondition("pk = :userId")
+            keyCondition("pk = :userId and begins_with(sk, :acc)")
             attributes {
                 ":userId" from userID
+                ":acc" from "acc:"
             }
         }
 
@@ -133,7 +142,7 @@ class Ledger {
             keyCondition("sk = :accountID and begins_with(pk, :user)")
             attributes {
                 ":accountID" from accountID
-                ":user" from "USER-"
+                ":user" from "usr:"
             }
         }
         return response.items().map { UserID(it.take("pk")) }.single()

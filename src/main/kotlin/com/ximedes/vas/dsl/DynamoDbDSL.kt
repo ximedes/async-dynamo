@@ -12,5 +12,5 @@ inline fun <reified T> Map<String, AttributeValue>.take(key: String) = when (T::
     String::class -> get(key)?.s() as T
     Int::class -> get(key)?.n() as T
     Long::class -> get(key)?.n()?.toLong() as T
-    else -> TODO()
+    else -> throw IllegalArgumentException("Unsupported type ${T::class}")
 }

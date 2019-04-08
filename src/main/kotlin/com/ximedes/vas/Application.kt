@@ -1,9 +1,6 @@
 package com.ximedes.vas
 
-import com.ximedes.vas.domain.Account
-import com.ximedes.vas.domain.AccountID
-import com.ximedes.vas.domain.Transfer
-import com.ximedes.vas.domain.UserID
+import com.ximedes.vas.domain.*
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -21,8 +18,8 @@ import mu.KotlinLogging
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+data class NewUserMessage(val id: String, val email: String)
 data class NewAccountMessage(val account: String, val user: String, val overdraft: Long, val description: String)
-
 data class TransferMessage(val from: String, val to: String, val amount: Long, val description: String)
 
 fun Application.module() {
@@ -38,6 +35,14 @@ fun Application.module() {
     }
 
     routing {
+        route("/user") {
+            post {
+                val msg = call.receive<NewUserMessage>()
+                val user = User(UserID(msg.id), msg.email)
+                ledger.createUser(user)
+                call.respond(HttpStatusCode.OK)
+            }
+        }
         route("/account") {
             post {
                 val msg = call.receive<NewAccountMessage>()
