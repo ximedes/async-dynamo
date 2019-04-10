@@ -8,7 +8,7 @@ typealias MutableItem = MutableMap<String, AttributeValue>
 @DslMarker
 annotation class DynamoDbDSL
 
-inline fun <reified T> Map<String, AttributeValue>.take(key: String) = when (T::class) {
+inline fun <reified T> Item.take(key: String) = when (T::class) {
     String::class -> get(key)?.s() as T
     Int::class -> get(key)?.n() as T
     Long::class -> get(key)?.n()?.toLong() as T

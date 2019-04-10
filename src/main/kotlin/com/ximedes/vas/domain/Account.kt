@@ -1,7 +1,7 @@
 package com.ximedes.vas.domain
 
+import com.ximedes.vas.dsl.Item
 import com.ximedes.vas.dsl.take
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 inline class AccountID(val id: String)
 
@@ -11,9 +11,10 @@ data class Account(
     val balance: Long,
     val overdraft: Long,
     val description: String
+
 )
 
-fun Map<String, AttributeValue>.asAccount(): Account {
+fun Item.asAccount(): Account {
     val userID = UserID(take("owner_id"))
     val accountID = AccountID(take("pk"))
     val overdraft = take<Long>("overdraft")
