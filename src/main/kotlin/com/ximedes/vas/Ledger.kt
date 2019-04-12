@@ -8,7 +8,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.time.Instant
-import java.util.*
 
 class Ledger {
     private val client = DynamoDbAsyncClient.builder()
@@ -54,7 +53,7 @@ class Ledger {
                 "sk" from account.id
                 "owner_id" from account.owner
                 "overdraft" from account.overdraft
-                "headroom" from account.overdraft
+                "headroom" from account.overdraft - account.balance
                 "description" from account.description
             }
             condition("attribute_not_exists(pk)")
@@ -69,13 +68,19 @@ class Ledger {
                 ":userId" from userID
             }
         }
-        return response.items().map { it.asAccount() }
+        return response.items().map {
+            val ownerID = UserID(it.take("owner_id"))
+            val accountID = AccountID(it.take("pk"))
+            val overdraft = it.take<Long>("overdraft")
+            val balance = it.take<Long>("headroom") - overdraft
+            val description = it.take<String>("description")
+            Account(ownerID, accountID, balance, overdraft, description)
+        }
 
     }
 
     suspend fun transfer(transfer: Transfer) {
         val timeStamp = Instant.now().toEpochMilli()
-        val id = UUID.randomUUID().toString()
 
         client.writeTransaction {
             update("ledger") {
@@ -107,8 +112,8 @@ class Ledger {
             put("ledger") {
                 item {
                     "pk" from transfer.from
-                    "sk" from "trc:$timeStamp-$id"
-                    "id" from id
+                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "id" from transfer.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
                     "description" from transfer.description
@@ -118,8 +123,8 @@ class Ledger {
             put("ledger") {
                 item {
                     "pk" from transfer.to
-                    "sk" from "trc:$timeStamp-$id"
-                    "id" from id
+                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "id" from transfer.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
                     "description" from transfer.description
@@ -127,18 +132,6 @@ class Ledger {
             }
         }
 
-    }
-
-    private suspend fun findUserIDByAccountID(accountID: AccountID): UserID {
-        val response = client.query("ledger") {
-            useIndex("accounts")
-            keyCondition("sk = :accountID and begins_with(pk, :user)")
-            attributes {
-                ":accountID" from accountID
-                ":user" from "usr:"
-            }
-        }
-        return response.items().map { UserID(it.take("pk")) }.single()
     }
 
 }

@@ -15,6 +15,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -58,9 +59,10 @@ fun Application.module() {
         }
         post("/transfer") {
             val msg = call.receive<TransferMessage>()
-            val transfer = Transfer(AccountID(msg.from), AccountID(msg.to), msg.amount, msg.description)
+            val id = TransferID(UUID.randomUUID().toString())
+            val transfer = Transfer(id, AccountID(msg.from), AccountID(msg.to), msg.amount, msg.description)
             ledger.transfer(transfer)
-            call.respond(HttpStatusCode.OK)
+            call.respond(transfer)
         }
 
     }

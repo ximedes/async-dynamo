@@ -1,6 +1,7 @@
 package com.ximedes.vas.dsl.builders
 
 import com.ximedes.vas.domain.AccountID
+import com.ximedes.vas.domain.TransferID
 import com.ximedes.vas.domain.UserID
 import com.ximedes.vas.dsl.DynamoDbDSL
 import com.ximedes.vas.dsl.MutableItem
@@ -35,6 +36,8 @@ class ItemBuilder {
     infix fun String.from(userID: UserID) = from(userID.id)
 
     infix fun String.from(accountID: AccountID) = from(accountID.id)
+
+    infix fun String.from(transferID: TransferID) = from(transferID.id)
 
     fun build(): Map<String, AttributeValue> = item
 
