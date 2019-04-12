@@ -19,9 +19,9 @@ import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-data class NewUserMessage(val id: String, val email: String)
-data class NewAccountMessage(val account: String, val user: String, val overdraft: Long, val description: String)
-data class TransferMessage(val from: String, val to: String, val amount: Long, val description: String)
+data class CreateUserRequest(val id: String, val email: String)
+data class CreateAccountRequest(val account: String, val user: String, val overdraft: Long, val description: String)
+data class TransferRequest(val from: String, val to: String, val amount: Long, val description: String)
 
 fun Application.module() {
     val logger = KotlinLogging.logger {}
@@ -38,7 +38,7 @@ fun Application.module() {
     routing {
         route("/user") {
             post {
-                val msg = call.receive<NewUserMessage>()
+                val msg = call.receive<CreateUserRequest>()
                 val user = User(UserID(msg.id), msg.email)
                 ledger.createUser(user)
                 call.respond(HttpStatusCode.OK)
@@ -46,7 +46,7 @@ fun Application.module() {
         }
         route("/account") {
             post {
-                val msg = call.receive<NewAccountMessage>()
+                val msg = call.receive<CreateAccountRequest>()
                 val account = Account(UserID(msg.user), AccountID((msg.account)), 0, msg.overdraft, msg.description)
                 ledger.createAccount(account)
                 call.respond(HttpStatusCode.OK)
@@ -58,7 +58,7 @@ fun Application.module() {
             }
         }
         post("/transfer") {
-            val msg = call.receive<TransferMessage>()
+            val msg = call.receive<TransferRequest>()
             val id = TransferID(UUID.randomUUID().toString())
             val transfer = Transfer(id, AccountID(msg.from), AccountID(msg.to), msg.amount, msg.description)
             ledger.transfer(transfer)
