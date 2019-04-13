@@ -2,6 +2,7 @@ package com.ximedes.vas
 
 import com.ximedes.vas.domain.*
 import com.ximedes.vas.dsl.*
+import mu.KotlinLogging
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
@@ -10,6 +11,9 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.time.Instant
 
 class Ledger {
+
+    private val logger = KotlinLogging.logger {}
+
     private val client = DynamoDbAsyncClient.builder()
         .credentialsProvider(ProfileCredentialsProvider.create())
         .region(Region.EU_WEST_1)
@@ -69,6 +73,7 @@ class Ledger {
             }
         }
         return response.items().map {
+            logger.info { AccountItem(it) }
             val ownerID = UserID(it.take("owner_id"))
             val accountID = AccountID(it.take("pk"))
             val overdraft = it.take<Long>("overdraft")
@@ -135,4 +140,7 @@ class Ledger {
     }
 
 }
+
+
+
 
