@@ -1,5 +1,8 @@
-package com.ximedes.vas
+package com.ximedes.vas.api.async
 
+import com.ximedes.vas.api.CreateAccountRequest
+import com.ximedes.vas.api.CreateUserRequest
+import com.ximedes.vas.api.TransferRequest
 import com.ximedes.vas.domain.*
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -19,9 +22,7 @@ import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-data class CreateUserRequest(val id: String, val email: String)
-data class CreateAccountRequest(val account: String, val user: String, val overdraft: Long, val description: String)
-data class TransferRequest(val from: String, val to: String, val amount: Long, val description: String)
+
 
 fun Application.module() {
     val logger = KotlinLogging.logger {}
@@ -30,7 +31,7 @@ fun Application.module() {
         jackson { }
     }
 
-    val ledger = Ledger()
+    val ledger = AsyncLedger()
     runBlocking {
         ledger.init()
     }
@@ -45,16 +46,16 @@ fun Application.module() {
             }
         }
         route("/account") {
+            get("/{userId}") {
+                val userID = UserID(call.parameters["userId"]!!)
+                val accounts = ledger.queryUserAccounts(userID)
+                call.respond(accounts)
+            }
             post {
                 val msg = call.receive<CreateAccountRequest>()
                 val account = Account(UserID(msg.user), AccountID((msg.account)), 0, msg.overdraft, msg.description)
                 ledger.createAccount(account)
                 call.respond(HttpStatusCode.OK)
-
-            }
-            get("/{userId}") {
-                val userID = UserID(call.parameters["userId"]!!)
-                call.respond(ledger.queryUserAccounts(userID))
             }
         }
         post("/transfer") {

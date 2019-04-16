@@ -21,6 +21,29 @@ fun DynamoDbClient.createTable(
     return createTable(request)
 }
 
+fun DynamoDbClient.assertTable(
+    tableName: String,
+    init: CreateTableRequestBuilder.() -> Unit
+) {
+    val logger = KotlinLogging.logger {}
+    do {
+        val status = try {
+            val tableDescription = describeTable(DescribeTableRequest.builder().tableName(tableName).build())
+            tableDescription.table().tableStatus()
+        } catch (e: ResourceNotFoundException) {
+            logger.info { "Table $tableName does not exit, creating it now" }
+            createTable(tableName, init)
+            TableStatus.CREATING
+        }
+        if (status != TableStatus.ACTIVE) {
+            logger.info { "Table $tableName is in status $status, checking again later" }
+            Thread.sleep(500)
+        }
+
+    } while (status != TableStatus.ACTIVE)
+
+}
+
 suspend fun DynamoDbAsyncClient.createTable(
     tableName: String,
     init: CreateTableRequestBuilder.() -> Unit

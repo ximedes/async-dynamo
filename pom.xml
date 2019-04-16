@@ -11,12 +11,13 @@
         <ktor.version>1.1.3</ktor.version>
         <kotlin_version>1.3.30</kotlin_version>
         <kotlin-logging.version>1.6.24</kotlin-logging.version>
-        <logback_version>1.2.1</logback_version>
+        <logback.version>1.2.1</logback.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <main.class>io.ktor.server.netty.EngineMain</main.class>
         <dynamodb.version>2.3.9</dynamodb.version>
+        <http4k.version>3.134.0</http4k.version>
     </properties>
     <repositories>
         <repository>
@@ -49,7 +50,22 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback_version}</version>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-core</artifactId>
+            <version>${http4k.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-server-jetty</artifactId>
+            <version>${http4k.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-format-jackson</artifactId>
+            <version>${http4k.version}</version>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>

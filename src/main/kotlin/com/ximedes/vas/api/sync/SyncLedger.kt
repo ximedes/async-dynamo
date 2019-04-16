@@ -1,41 +1,25 @@
-package com.ximedes.vas
+package com.ximedes.vas.api.sync
 
 import com.ximedes.vas.domain.*
-import com.ximedes.vas.dsl.*
+import com.ximedes.vas.dsl.put
+import com.ximedes.vas.dsl.query
+import com.ximedes.vas.dsl.take
+import com.ximedes.vas.dsl.writeTransaction
+import mu.KotlinLogging
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
-import software.amazon.awssdk.services.dynamodb.model.ProjectionType
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import java.time.Instant
 
-class Ledger {
-    private val client = DynamoDbAsyncClient.builder()
+class SyncLedger {
+    private val logger = KotlinLogging.logger {}
+
+    private val client = DynamoDbClient.builder()
         .credentialsProvider(ProfileCredentialsProvider.create())
         .region(Region.EU_WEST_1)
         .build()
 
-    suspend fun init() {
-        client.assertTable("ledger") {
-            attribute("pk", ScalarAttributeType.S)
-            attribute("sk", ScalarAttributeType.S)
-            attribute("owner_id", ScalarAttributeType.S)
-
-            partitionKey("pk")
-            sortKey("sk")
-
-            throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
-
-            globalSecondaryIndex("accounts") {
-                partitionKey("owner_id")
-                sortKey("pk")
-                projection(ProjectionType.ALL)
-                throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
-            }
-        }
-    }
-
-    suspend fun createUser(user: User) {
+    fun createUser(user: User) {
         client.put("ledger") {
             item {
                 "pk" from user.id
@@ -46,21 +30,7 @@ class Ledger {
         }
     }
 
-    suspend fun createAccount(account: Account) {
-        client.put("ledger") {
-            item {
-                "pk" from account.id
-                "sk" from account.id
-                "owner_id" from account.owner
-                "overdraft" from account.overdraft
-                "headroom" from account.overdraft - account.balance
-                "description" from account.description
-            }
-            condition("attribute_not_exists(pk)")
-        }
-    }
-
-    suspend fun queryUserAccounts(userID: UserID): List<Account> {
+    fun queryUserAccounts(userID: UserID): List<Account> {
         val response = client.query("ledger") {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
@@ -79,7 +49,21 @@ class Ledger {
 
     }
 
-    suspend fun transfer(transfer: Transfer) {
+    fun createAccount(account: Account) {
+        client.put("ledger") {
+            item {
+                "pk" from account.id
+                "sk" from account.id
+                "owner_id" from account.owner
+                "overdraft" from account.overdraft
+                "headroom" from account.overdraft - account.balance
+                "description" from account.description
+            }
+            condition("attribute_not_exists(pk)")
+        }
+    }
+
+    fun transfer(transfer: Transfer) {
         val timeStamp = Instant.now().toEpochMilli()
 
         client.writeTransaction {
@@ -135,4 +119,3 @@ class Ledger {
     }
 
 }
-
