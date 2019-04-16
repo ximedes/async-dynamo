@@ -1,14 +1,13 @@
 package com.ximedes.vas.api.sync
 
 import com.ximedes.vas.domain.*
-import com.ximedes.vas.dsl.put
-import com.ximedes.vas.dsl.query
-import com.ximedes.vas.dsl.take
-import com.ximedes.vas.dsl.writeTransaction
+import com.ximedes.vas.dsl.*
 import mu.KotlinLogging
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.time.Instant
 
 class SyncLedger {
@@ -18,6 +17,26 @@ class SyncLedger {
         .credentialsProvider(ProfileCredentialsProvider.create())
         .region(Region.EU_WEST_1)
         .build()
+
+    fun init() {
+        client.assertTable("ledger") {
+            attribute("pk", ScalarAttributeType.S)
+            attribute("sk", ScalarAttributeType.S)
+            attribute("owner_id", ScalarAttributeType.S)
+
+            partitionKey("pk")
+            sortKey("sk")
+
+            throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
+
+            globalSecondaryIndex("accounts") {
+                partitionKey("owner_id")
+                sortKey("pk")
+                projection(ProjectionType.ALL)
+                throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
+            }
+        }
+    }
 
     fun createUser(user: User) {
         client.put("ledger") {

@@ -17,15 +17,16 @@ import org.http4k.server.Jetty
 import org.http4k.server.asServer
 import java.util.*
 
+val curLens = Body.auto<CreateUserRequest>().toLens()
+val carLens = Body.auto<CreateAccountRequest>().toLens()
+val trLens = Body.auto<TransferRequest>().toLens()
+val tLens = Body.auto<Transfer>().toLens()
+val userIDLens = Path.string().of("userId")
+val accListLens = Body.auto<List<Account>>().toLens()
+
 fun main() {
     val ledger = SyncLedger()
-
-    val curLens = Body.auto<CreateUserRequest>().toLens()
-    val carLens = Body.auto<CreateAccountRequest>().toLens()
-    val trLens = Body.auto<TransferRequest>().toLens()
-    val tLens = Body.auto<Transfer>().toLens()
-    val userIDLens = Path.string().of("userId")
-    val accListLens = Body.auto<List<Account>>().toLens()
+    ledger.init()
 
     val app = routes(
         "/user" bind Method.POST to { request ->
