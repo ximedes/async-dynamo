@@ -1,7 +1,10 @@
 package com.ximedes.vas
 
 import com.ximedes.vas.domain.*
-import com.ximedes.vas.dsl.*
+import com.ximedes.vas.dsl.assertTable
+import com.ximedes.vas.dsl.put
+import com.ximedes.vas.dsl.query
+import com.ximedes.vas.dsl.writeTransaction
 import mu.KotlinLogging
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
@@ -73,13 +76,9 @@ class Ledger {
             }
         }
         return response.items().map {
-            logger.info { AccountItem(it) }
-            val ownerID = UserID(it.take("owner_id"))
-            val accountID = AccountID(it.take("pk"))
-            val overdraft = it.take<Long>("overdraft")
-            val balance = it.take<Long>("headroom") - overdraft
-            val description = it.take<String>("description")
-            Account(ownerID, accountID, balance, overdraft, description)
+            with(AccountItem(it)) {
+                Account(UserID(ownerID), AccountID(accountID), headroom - overdraft, overdraft, description)
+            }
         }
 
     }

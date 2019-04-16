@@ -15,11 +15,9 @@ data class Account(
 
 class AccountItem(item: Item) {
     val ownerID: String by item.prop("owner_id")
+    val accountID: String by item.prop("pk")
     val headroom: Long by item.prop("headroom")
-
-    override fun toString(): String {
-        return "AccountItem(owner=$ownerID, overdraft=$headroom)"
-    }
-
+    val overdraft: Long by item.prop("overdraft")
+    val description: String by item.prop("description")
 }
 
