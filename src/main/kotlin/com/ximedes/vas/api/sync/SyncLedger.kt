@@ -1,5 +1,6 @@
 package com.ximedes.vas.api.sync
 
+import com.ximedes.vas.api.Constants
 import com.ximedes.vas.domain.*
 import com.ximedes.vas.dsl.*
 import mu.KotlinLogging
@@ -27,13 +28,19 @@ class SyncLedger {
             partitionKey("pk")
             sortKey("sk")
 
-            throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
+            throughput(
+                readCapacityUnits = Constants.readCapacityUnits,
+                writeCapacityUnits = Constants.writeCapacityUnits
+            )
 
             globalSecondaryIndex("accounts") {
                 partitionKey("owner_id")
                 sortKey("pk")
                 projection(ProjectionType.ALL)
-                throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
+                throughput(
+                    readCapacityUnits = Constants.readCapacityUnits,
+                    writeCapacityUnits = Constants.writeCapacityUnits
+                )
             }
         }
     }
