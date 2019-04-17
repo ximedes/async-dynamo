@@ -38,6 +38,11 @@ class SyncLedger {
         }
     }
 
+    fun reset() {
+        client.deleteTable("ledger")
+        init()
+    }
+
     fun createUser(user: User) {
         client.put("ledger") {
             item {

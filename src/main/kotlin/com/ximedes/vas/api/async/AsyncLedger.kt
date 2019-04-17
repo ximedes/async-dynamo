@@ -37,6 +37,12 @@ class AsyncLedger {
                 throughput(readCapacityUnits = 10, writeCapacityUnits = 10)
             }
         }
+
+    }
+
+    suspend fun reset() {
+        client.deleteTable("ledger")
+        init()
     }
 
     suspend fun createUser(user: User) {

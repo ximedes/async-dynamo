@@ -65,7 +65,11 @@ fun Application.module() {
             ledger.transfer(transfer)
             call.respond(transfer)
         }
-
+        route("/reset") {
+            post {
+                ledger.reset()
+            }
+        }
     }
 
 }

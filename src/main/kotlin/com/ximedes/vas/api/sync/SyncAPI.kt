@@ -52,8 +52,11 @@ fun main() {
             val transfer = Transfer(id, AccountID(msg.from), AccountID(msg.to), msg.amount, msg.description)
             ledger.transfer(transfer)
             tLens.inject(transfer, Response(OK))
+        },
+        "/reset" bind Method.POST to {
+            ledger.reset()
+            Response(OK)
         }
-
 
     )
 

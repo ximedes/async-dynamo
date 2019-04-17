@@ -13,6 +13,7 @@ fun DynamoDbClient.assertTable(
     init: CreateTableRequestBuilder.() -> Unit
 ) {
     val logger = KotlinLogging.logger {}
+    var delayMS = 250L
     do {
         val status = try {
             val describeTableResponse = describeTable(tableName)
@@ -24,7 +25,8 @@ fun DynamoDbClient.assertTable(
         }
         if (status != TableStatus.ACTIVE) {
             logger.info { "Table $tableName is in status $status, checking again later" }
-            Thread.sleep(500)
+            Thread.sleep(delayMS)
+            delayMS = (2 * delayMS).coerceAtMost(4000L)
         }
 
     } while (status != TableStatus.ACTIVE)
@@ -36,6 +38,7 @@ suspend fun DynamoDbAsyncClient.assertTable(
     init: CreateTableRequestBuilder.() -> Unit
 ) {
     val logger = KotlinLogging.logger {}
+    var delayMS = 250L
     do {
         val status = try {
             val describeTableResponse = describeTable(tableName)
@@ -47,7 +50,8 @@ suspend fun DynamoDbAsyncClient.assertTable(
         }
         if (status != TableStatus.ACTIVE) {
             logger.info { "Table $tableName is in status $status, checking again later" }
-            delay(500)
+            delay(delayMS)
+            delayMS = (2 * delayMS).coerceAtMost(4000L)
         }
 
     } while (status != TableStatus.ACTIVE)
