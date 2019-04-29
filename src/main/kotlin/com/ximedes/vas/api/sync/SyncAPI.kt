@@ -1,8 +1,6 @@
 package com.ximedes.vas.api.sync
 
-import com.ximedes.vas.api.CreateAccountRequest
-import com.ximedes.vas.api.CreateUserRequest
-import com.ximedes.vas.api.TransferRequest
+import com.ximedes.vas.api.*
 import com.ximedes.vas.domain.*
 import org.http4k.core.Body
 import org.http4k.core.Method
@@ -10,6 +8,8 @@ import org.http4k.core.Response
 import org.http4k.core.Status.Companion.OK
 import org.http4k.format.Jackson.auto
 import org.http4k.lens.Path
+import org.http4k.lens.Query
+import org.http4k.lens.long
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -23,10 +23,11 @@ val trLens = Body.auto<TransferRequest>().toLens()
 val tLens = Body.auto<Transfer>().toLens()
 val userIDLens = Path.string().of("userId")
 val accListLens = Body.auto<List<Account>>().toLens()
+val msLens = Query.long().optional("ms")
+val resetLens = Body.auto<ResetRequest>().toLens()
 
 fun main() {
     val ledger = SyncLedger()
-    ledger.init()
 
     val app = routes(
         "/user" bind Method.POST to { request ->
@@ -53,8 +54,19 @@ fun main() {
             ledger.transfer(transfer)
             tLens.inject(transfer, Response(OK))
         },
-        "/reset" bind Method.POST to {
-            ledger.reset()
+        "/reset" bind Method.POST to { request ->
+            val reset = resetLens.extract(request)
+            val capacity = reset.readCapacityUnits?.let { rcu ->
+                reset.writeCapacityUnits?.let { wcu ->
+                    Pair(rcu, wcu)
+                }
+            }
+            ledger.reset(capacity)
+            Response(OK)
+        },
+        "/sleep" bind Method.GET to { request ->
+            val ms = msLens.extract(request) ?: defaultSleepMS
+            Thread.sleep(ms)
             Response(OK)
         }
 

@@ -1,7 +1,6 @@
 package com.ximedes.vas.api
 
-object Constants {
-    val readCapacityUnits = 10L
-    val writeCapacityUnits = 10L
+const val readCapacityUnits = 10L
+const val writeCapacityUnits = 10L
+const val defaultSleepMS = 2000L
 
-}

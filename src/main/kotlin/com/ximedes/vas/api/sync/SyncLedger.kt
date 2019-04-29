@@ -1,6 +1,5 @@
 package com.ximedes.vas.api.sync
 
-import com.ximedes.vas.api.Constants
 import com.ximedes.vas.domain.*
 import com.ximedes.vas.dsl.*
 import mu.KotlinLogging
@@ -8,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.time.Instant
 
@@ -19,7 +19,7 @@ class SyncLedger {
         .region(Region.EU_WEST_1)
         .build()
 
-    fun init() {
+    fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
             attribute("pk", ScalarAttributeType.S)
             attribute("sk", ScalarAttributeType.S)
@@ -28,26 +28,28 @@ class SyncLedger {
             partitionKey("pk")
             sortKey("sk")
 
-            throughput(
-                readCapacityUnits = Constants.readCapacityUnits,
-                writeCapacityUnits = Constants.writeCapacityUnits
-            )
+            capacity?.let {
+                provisionedThroughput(
+                    readCapacityUnits = capacity.first,
+                    writeCapacityUnits = capacity.second
+                )
+            }
 
             globalSecondaryIndex("accounts") {
                 partitionKey("owner_id")
                 sortKey("pk")
                 projection(ProjectionType.ALL)
-                throughput(
-                    readCapacityUnits = Constants.readCapacityUnits,
-                    writeCapacityUnits = Constants.writeCapacityUnits
-                )
             }
         }
     }
 
-    fun reset() {
-        client.deleteTable("ledger")
-        init()
+    fun reset(capacity: Pair<Long, Long>?) {
+        try {
+            client.deleteTable("ledger")
+        } catch (e: ResourceNotFoundException) {
+            // No problem
+        }
+        init(capacity)
     }
 
     fun createUser(user: User) {

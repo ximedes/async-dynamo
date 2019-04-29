@@ -1,8 +1,6 @@
 package com.ximedes.vas.api.async
 
-import com.ximedes.vas.api.CreateAccountRequest
-import com.ximedes.vas.api.CreateUserRequest
-import com.ximedes.vas.api.TransferRequest
+import com.ximedes.vas.api.*
 import com.ximedes.vas.domain.*
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -16,12 +14,11 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
-
 
 
 fun Application.module() {
@@ -32,18 +29,13 @@ fun Application.module() {
     }
 
     val ledger = AsyncLedger()
-    runBlocking {
-        ledger.init()
-    }
 
     routing {
-        route("/user") {
-            post {
-                val msg = call.receive<CreateUserRequest>()
-                val user = User(UserID(msg.id), msg.email)
-                ledger.createUser(user)
-                call.respond(HttpStatusCode.OK)
-            }
+        post("/user") {
+            val msg = call.receive<CreateUserRequest>()
+            val user = User(UserID(msg.id), msg.email)
+            ledger.createUser(user)
+            call.respond(HttpStatusCode.OK)
         }
         route("/account") {
             get("/{userId}") {
@@ -65,10 +57,20 @@ fun Application.module() {
             ledger.transfer(transfer)
             call.respond(transfer)
         }
-        route("/reset") {
-            post {
-                ledger.reset()
+        post("/reset") {
+            val reset = call.receive<ResetRequest>()
+            val capacity = reset.readCapacityUnits?.let { rcu ->
+                reset.writeCapacityUnits?.let { wcu ->
+                    Pair(rcu, wcu)
+                }
             }
+            ledger.reset(capacity)
+            call.respond(HttpStatusCode.OK)
+        }
+        get("/sleep") {
+            val ms = call.request.queryParameters["ms"]?.toLong() ?: defaultSleepMS
+            delay(ms)
+            call.respond(HttpStatusCode.OK)
         }
     }
 

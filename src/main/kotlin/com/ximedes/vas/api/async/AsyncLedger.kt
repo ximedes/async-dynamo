@@ -1,6 +1,5 @@
 package com.ximedes.vas.api.async
 
-import com.ximedes.vas.api.Constants
 import com.ximedes.vas.domain.*
 import com.ximedes.vas.dsl.*
 import mu.KotlinLogging
@@ -20,7 +19,7 @@ class AsyncLedger {
         .region(Region.EU_WEST_1)
         .build()
 
-    suspend fun init() {
+    suspend fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
             attribute("pk", ScalarAttributeType.S)
             attribute("sk", ScalarAttributeType.S)
@@ -29,27 +28,25 @@ class AsyncLedger {
             partitionKey("pk")
             sortKey("sk")
 
-            throughput(
-                readCapacityUnits = Constants.readCapacityUnits,
-                writeCapacityUnits = Constants.writeCapacityUnits
-            )
+            capacity?.let {
+                provisionedThroughput(
+                    readCapacityUnits = capacity.first,
+                    writeCapacityUnits = capacity.second
+                )
+            }
 
             globalSecondaryIndex("accounts") {
                 partitionKey("owner_id")
                 sortKey("pk")
                 projection(ProjectionType.ALL)
-                throughput(
-                    readCapacityUnits = Constants.readCapacityUnits,
-                    writeCapacityUnits = Constants.writeCapacityUnits
-                )
             }
         }
 
     }
 
-    suspend fun reset() {
+    suspend fun reset(capacity: Pair<Long, Long>?) {
         client.deleteTable("ledger")
-        init()
+        init(capacity)
     }
 
     suspend fun createUser(user: User) {
@@ -150,6 +147,4 @@ class AsyncLedger {
         }
 
     }
-
 }
-

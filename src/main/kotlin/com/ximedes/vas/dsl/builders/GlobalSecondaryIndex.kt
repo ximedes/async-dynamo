@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.dynamodb.model.*
 class GlobalSecondaryIndexBuilder(name: String) {
     private val _builder = GlobalSecondaryIndex.builder().indexName(name)
     private val keySchemaElements = mutableListOf<KeySchemaElement>()
+    private var provisionedThroughput: ProvisionedThroughput? = null
 
 
     fun partitionKey(name: String) {
@@ -17,13 +18,11 @@ class GlobalSecondaryIndexBuilder(name: String) {
         keySchemaElements.add(KeySchemaElement.builder().attributeName(name).keyType(KeyType.RANGE).build())
     }
 
-    fun throughput(readCapacityUnits: Long, writeCapacityUnits: Long) {
-        _builder.provisionedThroughput(
-            ProvisionedThroughput.builder()
-                .writeCapacityUnits(readCapacityUnits)
-                .readCapacityUnits(writeCapacityUnits)
-                .build()
-        )
+    fun provisionedThroughput(readCapacityUnits: Long, writeCapacityUnits: Long) {
+        provisionedThroughput = ProvisionedThroughput.builder()
+            .writeCapacityUnits(readCapacityUnits)
+            .readCapacityUnits(writeCapacityUnits)
+            .build()
     }
 
     fun projection(type: ProjectionType, block: (ProjectionBuilder.() -> Unit) = {}) {
@@ -32,8 +31,14 @@ class GlobalSecondaryIndexBuilder(name: String) {
     }
 
 
-    fun build(): GlobalSecondaryIndex {
+    fun build(parentThroughput: ProvisionedThroughput?): GlobalSecondaryIndex {
         _builder.keySchema(*keySchemaElements.toTypedArray())
+
+        (provisionedThroughput ?: parentThroughput)?.let {
+            _builder.provisionedThroughput(it)
+        }
+
         return _builder.build()
     }
+
 }
