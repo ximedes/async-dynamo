@@ -6,12 +6,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 
-fun DynamoDbClient.put(tableName: String, block: PutItemRequestBuilder.() -> Unit): PutItemResponse {
+fun DynamoDbClient.putItem(tableName: String, block: PutItemRequestBuilder.() -> Unit): PutItemResponse {
     val request = PutItemRequestBuilder(tableName).apply(block).build()
     return putItem(request)
 }
 
-suspend fun DynamoDbAsyncClient.put(tableName: String, block: PutItemRequestBuilder.() -> Unit): PutItemResponse {
+suspend fun DynamoDbAsyncClient.putItem(tableName: String, block: PutItemRequestBuilder.() -> Unit): PutItemResponse {
     val request = PutItemRequestBuilder(tableName).apply(block).build()
     return putItem(request).await()
 }

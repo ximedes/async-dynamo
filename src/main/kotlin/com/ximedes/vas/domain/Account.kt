@@ -4,10 +4,9 @@ inline class AccountID(val id: String)
 
 data class Account(
     val owner: UserID,
-    val id: AccountID,
+    val accountID: AccountID,
     val balance: Long,
     val overdraft: Long,
     val description: String
-
 )
 

@@ -8,7 +8,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
 import java.time.Instant
 
 class SyncLedger {
@@ -21,10 +21,9 @@ class SyncLedger {
 
     fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
-            attribute("pk", ScalarAttributeType.S)
-            attribute("sk", ScalarAttributeType.S)
-            attribute("owner_id", ScalarAttributeType.S)
-
+            attributes {
+                S("pk", "sk", "owner_id")
+            }
             partitionKey("pk")
             sortKey("sk")
 
@@ -53,10 +52,10 @@ class SyncLedger {
     }
 
     fun createUser(user: User) {
-        client.put("ledger") {
+        client.putItem("ledger") {
             item {
-                "pk" from user.id
-                "sk" from user.id
+                "pk" from user.id.id
+                "sk" from user.id.id
                 "email" from user.email
             }
             condition("attribute_not_exists(pk)")
@@ -68,7 +67,7 @@ class SyncLedger {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
             attributes {
-                ":userId" from userID
+                ":userId" from userID.id
             }
         }
         return response.items().map {
@@ -83,11 +82,11 @@ class SyncLedger {
     }
 
     fun createAccount(account: Account) {
-        client.put("ledger") {
+        client.putItem("ledger") {
             item {
-                "pk" from account.id
-                "sk" from account.id
-                "owner_id" from account.owner
+                "pk" from account.accountID.id
+                "sk" from account.accountID.id
+                "owner_id" from account.owner.id
                 "overdraft" from account.overdraft
                 "headroom" from account.overdraft - account.balance
                 "description" from account.description
@@ -102,8 +101,8 @@ class SyncLedger {
         client.writeTransaction {
             update("ledger") {
                 key {
-                    "pk" from transfer.from
-                    "sk" from transfer.from
+                    "pk" from transfer.from.id
+                    "sk" from transfer.from.id
 
                 }
                 update("SET headroom = headroom - :a")
@@ -116,8 +115,8 @@ class SyncLedger {
             }
             update("ledger") {
                 key {
-                    "pk" from transfer.to
-                    "sk" from transfer.to
+                    "pk" from transfer.to.id
+                    "sk" from transfer.to.id
 
                 }
                 update("SET headroom = headroom + :a")
@@ -128,9 +127,9 @@ class SyncLedger {
             }
             put("ledger") {
                 item {
-                    "pk" from transfer.from
+                    "pk" from transfer.from.id
                     "sk" from "trc:$timeStamp-${transfer.id}"
-                    "id" from transfer.id
+                    "accountID" from transfer.id.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
                     "description" from transfer.description
@@ -139,9 +138,9 @@ class SyncLedger {
             }
             put("ledger") {
                 item {
-                    "pk" from transfer.to
+                    "pk" from transfer.to.id
                     "sk" from "trc:$timeStamp-${transfer.id}"
-                    "id" from transfer.id
+                    "accountID" from transfer.id.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
                     "description" from transfer.description

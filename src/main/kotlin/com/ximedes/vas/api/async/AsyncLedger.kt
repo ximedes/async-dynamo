@@ -7,7 +7,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
 import java.time.Instant
 
 class AsyncLedger {
@@ -21,9 +21,9 @@ class AsyncLedger {
 
     suspend fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
-            attribute("pk", ScalarAttributeType.S)
-            attribute("sk", ScalarAttributeType.S)
-            attribute("owner_id", ScalarAttributeType.S)
+            attributes {
+                S("pk", "sk", "owner_id")
+            }
 
             partitionKey("pk")
             sortKey("sk")
@@ -50,10 +50,10 @@ class AsyncLedger {
     }
 
     suspend fun createUser(user: User) {
-        client.put("ledger") {
+        client.putItem("ledger") {
             item {
-                "pk" from user.id
-                "sk" from user.id
+                "pk" from user.id.id
+                "sk" from user.id.id
                 "email" from user.email
             }
             condition("attribute_not_exists(pk)")
@@ -61,11 +61,11 @@ class AsyncLedger {
     }
 
     suspend fun createAccount(account: Account) {
-        client.put("ledger") {
+        client.putItem("ledger") {
             item {
-                "pk" from account.id
-                "sk" from account.id
-                "owner_id" from account.owner
+                "pk" from account.accountID.id
+                "sk" from account.accountID.id
+                "owner_id" from account.owner.id
                 "overdraft" from account.overdraft
                 "headroom" from account.overdraft - account.balance
                 "description" from account.description
@@ -79,7 +79,7 @@ class AsyncLedger {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
             attributes {
-                ":userId" from userID
+                ":userId" from userID.id
             }
         }
         return response.items().map {
@@ -99,8 +99,8 @@ class AsyncLedger {
         client.writeTransaction {
             update("ledger") {
                 key {
-                    "pk" from transfer.from
-                    "sk" from transfer.from
+                    "pk" from transfer.from.id
+                    "sk" from transfer.from.id
 
                 }
                 update("SET headroom = headroom - :a")
@@ -113,8 +113,8 @@ class AsyncLedger {
             }
             update("ledger") {
                 key {
-                    "pk" from transfer.to
-                    "sk" from transfer.to
+                    "pk" from transfer.to.id
+                    "sk" from transfer.to.id
 
                 }
                 update("SET headroom = headroom + :a")
@@ -125,9 +125,9 @@ class AsyncLedger {
             }
             put("ledger") {
                 item {
-                    "pk" from transfer.from
+                    "pk" from transfer.from.id
                     "sk" from "trc:$timeStamp-${transfer.id}"
-                    "id" from transfer.id
+                    "accountID" from transfer.id.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
                     "description" from transfer.description
@@ -136,9 +136,9 @@ class AsyncLedger {
             }
             put("ledger") {
                 item {
-                    "pk" from transfer.to
+                    "pk" from transfer.to.id
                     "sk" from "trc:$timeStamp-${transfer.id}"
-                    "id" from transfer.id
+                    "accountID" from transfer.id.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
                     "description" from transfer.description

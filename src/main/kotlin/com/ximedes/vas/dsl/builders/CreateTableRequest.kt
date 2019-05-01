@@ -1,23 +1,18 @@
 package com.ximedes.vas.dsl.builders
 
+import com.ximedes.dynamo4k.builders.AttributeDefinitionsBuilder
 import com.ximedes.vas.dsl.DynamoDbDSL
 import software.amazon.awssdk.services.dynamodb.model.*
 
 @DynamoDbDSL
 class CreateTableRequestBuilder(tableName: String) {
     private var _builder = CreateTableRequest.builder().tableName(tableName).billingMode(BillingMode.PAY_PER_REQUEST)
-    private val attributeDefinitions = mutableListOf<AttributeDefinition>()
     private val keySchemaElements = mutableListOf<KeySchemaElement>()
     private val globalSecondaryIndexBuilders = mutableListOf<GlobalSecondaryIndexBuilder>()
     private var provisionedThroughput: ProvisionedThroughput? = null
 
-    fun attribute(name: String, type: ScalarAttributeType) {
-        attributeDefinitions.add(
-            AttributeDefinition.builder()
-                .attributeName(name)
-                .attributeType(type)
-                .build()
-        )
+    fun attributes(init: AttributeDefinitionsBuilder.() -> Unit) {
+        _builder.attributeDefinitions(AttributeDefinitionsBuilder().apply(init).build())
     }
 
     fun partitionKey(name: String) {
@@ -50,13 +45,16 @@ class CreateTableRequestBuilder(tableName: String) {
 
 
     fun build(): CreateTableRequest {
-        _builder.attributeDefinitions(*attributeDefinitions.toTypedArray())
         _builder.keySchema(*keySchemaElements.toTypedArray())
+
         provisionedThroughput?.let {
             _builder.billingMode(BillingMode.PROVISIONED).provisionedThroughput(it)
         }
 
-        _builder.globalSecondaryIndexes(*globalSecondaryIndexBuilders.map { it.build(provisionedThroughput) }.toTypedArray())
+        if (globalSecondaryIndexBuilders.isNotEmpty()) {
+            _builder.globalSecondaryIndexes(*globalSecondaryIndexBuilders.map { it.build(provisionedThroughput) }.toTypedArray())
+        }
+
         return _builder.build()
     }
 
