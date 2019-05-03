@@ -8,7 +8,6 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
 import java.time.Instant
 
 class SyncLedger {
@@ -22,7 +21,7 @@ class SyncLedger {
     fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
             attributes {
-                S("pk", "sk", "owner_id")
+                string("pk", "sk", "owner_id")
             }
             partitionKey("pk")
             sortKey("sk")

@@ -7,7 +7,6 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
 import java.time.Instant
 
 class AsyncLedger {
@@ -22,7 +21,7 @@ class AsyncLedger {
     suspend fun init(capacity: Pair<Long, Long>?) {
         client.assertTable("ledger") {
             attributes {
-                S("pk", "sk", "owner_id")
+                string("pk", "sk", "owner_id")
             }
 
             partitionKey("pk")

@@ -9,9 +9,15 @@ class AttributeDefinitionsBuilder {
 
     private val definitions = mutableListOf<AttributeDefinition>()
 
-    operator fun ScalarAttributeType.invoke(vararg names: String) {
-        definitions.addAll(names.map { AttributeDefinition.builder().attributeName(it).attributeType(this).build() })
+    private fun attributes(type: ScalarAttributeType, vararg names: String) {
+        definitions.addAll(names.map { AttributeDefinition.builder().attributeName(it).attributeType(type).build() })
     }
+
+    fun string(vararg names: String) = attributes(ScalarAttributeType.S, *names)
+
+    fun number(vararg names: String) = attributes(ScalarAttributeType.N, *names)
+
+    fun boolean(vararg names: String) = attributes(ScalarAttributeType.B, *names)
 
     fun build(): List<AttributeDefinition> = definitions
 
