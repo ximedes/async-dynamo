@@ -7,15 +7,9 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 @DynamoDbDSL
 class ProjectionBuilder(type: ProjectionType) {
     private val _builder = Projection.builder().projectionType(type)
-    private val nonKeyAttributes = mutableListOf<String>()
 
-    fun build(): Projection {
-        if (nonKeyAttributes.size > 0) {
-            _builder.nonKeyAttributes(nonKeyAttributes)
-        }
-        return _builder.build()
-    }
+    fun build() = _builder.build()
 
-    fun nonKeyAttribute(name: String) = nonKeyAttributes.add(name)
+    fun nonKeyAttributes(vararg names: String) = _builder.nonKeyAttributes(*names)
 
 }

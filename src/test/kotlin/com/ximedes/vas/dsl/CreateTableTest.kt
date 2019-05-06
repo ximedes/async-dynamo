@@ -99,15 +99,31 @@ internal class CreateTableTest {
     fun `global secondary index`() {
         val sdkRequest = CreateTableRequest.builder()
             .globalSecondaryIndexes(
-                GlobalSecondaryIndex.builder().build()
+                GlobalSecondaryIndex.builder()
+                    .indexName("gsi1")
+                    .projection(Projection.builder().projectionType(ProjectionType.ALL).build())
+                    .keySchema(KeySchemaElement.builder().keyType(KeyType.HASH).attributeName("k1").build())
+                    .build(),
+                GlobalSecondaryIndex.builder()
+                    .indexName("gsi2")
+                    .projection(Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build())
+                    .keySchema(KeySchemaElement.builder().keyType(KeyType.RANGE).attributeName("k2").build())
+                    .build()
             )
             .build()
         val dslRequest = dslRequest {
-            provisionedThroughput(1L, 2L)
+            globalSecondaryIndex("gsi1") {
+                projection(ProjectionType.ALL)
+                partitionKey("k1")
+            }
+            globalSecondaryIndex("gsi2") {
+                projection(ProjectionType.KEYS_ONLY)
+                sortKey("k2")
+            }
+
         }
 
-        assertEquals(BillingMode.PROVISIONED, dslRequest.billingMode())
-        assertEquals(sdkRequest.provisionedThroughput(), dslRequest.provisionedThroughput())
+        assertEquals(sdkRequest.globalSecondaryIndexes(), dslRequest.globalSecondaryIndexes())
     }
 
     @Test

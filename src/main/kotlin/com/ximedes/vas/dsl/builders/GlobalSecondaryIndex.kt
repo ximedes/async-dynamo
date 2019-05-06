@@ -20,8 +20,8 @@ class GlobalSecondaryIndexBuilder(name: String) {
 
     fun provisionedThroughput(readCapacityUnits: Long, writeCapacityUnits: Long) {
         provisionedThroughput = ProvisionedThroughput.builder()
-            .writeCapacityUnits(readCapacityUnits)
-            .readCapacityUnits(writeCapacityUnits)
+            .readCapacityUnits(readCapacityUnits)
+            .writeCapacityUnits(writeCapacityUnits)
             .build()
     }
 
