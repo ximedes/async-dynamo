@@ -1,6 +1,5 @@
 package com.ximedes.vas.dsl.builders
 
-import com.ximedes.dynamo4k.builders.AttributeDefinitionsBuilder
 import com.ximedes.vas.dsl.DynamoDbDSL
 import software.amazon.awssdk.services.dynamodb.model.*
 

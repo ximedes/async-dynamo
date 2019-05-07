@@ -1,4 +1,4 @@
-package com.ximedes.dynamo4k.builders
+package com.ximedes.vas.dsl.builders
 
 import com.ximedes.vas.dsl.DynamoDbDSL
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition
@@ -17,7 +17,7 @@ class AttributeDefinitionsBuilder {
 
     fun number(vararg names: String) = attributes(ScalarAttributeType.N, *names)
 
-    fun boolean(vararg names: String) = attributes(ScalarAttributeType.B, *names)
+    fun binary(vararg names: String) = attributes(ScalarAttributeType.B, *names)
 
     fun build(): List<AttributeDefinition> = definitions
 

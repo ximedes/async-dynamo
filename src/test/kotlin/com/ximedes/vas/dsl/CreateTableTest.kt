@@ -1,30 +1,15 @@
 package com.ximedes.vas.dsl
 
 import com.ximedes.vas.dsl.builders.CreateTableRequestBuilder
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.*
 
 internal class CreateTableTest {
 
-    private val client = mockk<DynamoDbClient>()
-    private val slot = slot<CreateTableRequest>()
     private fun dslRequest(tableName: String = "foo", init: CreateTableRequestBuilder.() -> Unit): CreateTableRequest {
-        client.createTable(tableName, init)
-        return slot.captured
-    }
-
-    @BeforeEach
-    fun reset() {
-        clearAllMocks()
-        every { client.createTable(capture(slot)) } answers { CreateTableResponse.builder().build() }
+        return CreateTableRequestBuilder(tableName).apply(init).build()
     }
 
     @Test
@@ -56,7 +41,7 @@ internal class CreateTableTest {
             attributes {
                 string("s1", "s2")
                 number("n1")
-                boolean("b1")
+                binary("b1")
             }
         }
 
@@ -155,7 +140,7 @@ internal class CreateTableTest {
         val dslRequest = dslRequest("foo") {
             attributes {
                 string("myString1", "myString2")
-                boolean("myBool")
+                binary("myBool")
                 number("myNumber")
             }
             partitionKey("myString1")
