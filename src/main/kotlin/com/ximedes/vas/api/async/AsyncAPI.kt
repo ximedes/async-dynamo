@@ -40,7 +40,7 @@ fun Application.module() {
         route("/account") {
             get("/{userId}") {
                 val userID = UserID(call.parameters["userId"]!!)
-                val accounts = ledger.queryUserAccounts(userID)
+                val accounts = ledger.findAccountsByUserID(userID)
                 call.respond(accounts)
             }
             post {

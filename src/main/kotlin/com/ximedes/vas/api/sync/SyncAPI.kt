@@ -38,7 +38,7 @@ fun main() {
         },
         "/account/{userId:.*}" bind Method.GET to { request ->
             val userID = UserID(userIDLens(request))
-            val accounts = ledger.queryUserAccounts(userID)
+            val accounts = ledger.findAccountsByUserID(userID)
             accListLens.inject(accounts, Response(OK))
         },
         "/account" bind Method.POST to { request ->

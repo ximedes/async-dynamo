@@ -19,7 +19,7 @@ fun DynamoDbClient.assertTable(
             val describeTableResponse = describeTable(tableName)
             describeTableResponse.table().tableStatus()
         } catch (e: ResourceNotFoundException) {
-            logger.info { "Table $tableName does not exit, creating it now" }
+            logger.info { "Table $tableName does not exist, creating it now" }
             createTable(tableName, init)
             TableStatus.CREATING
         }
@@ -44,7 +44,7 @@ suspend fun DynamoDbAsyncClient.assertTable(
             val describeTableResponse = describeTable(tableName)
             describeTableResponse.table().tableStatus()
         } catch (e: ResourceNotFoundException) {
-            logger.info { "Table $tableName does not exit, creating it now" }
+            logger.info { "Table $tableName does not exist, creating it now" }
             createTable(tableName, init)
             TableStatus.CREATING
         }

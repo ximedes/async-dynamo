@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
 import java.time.Instant
 
 class AsyncLedger {
@@ -44,7 +45,11 @@ class AsyncLedger {
     }
 
     suspend fun reset(capacity: Pair<Long, Long>?) {
-        client.deleteTable("ledger")
+        try {
+            client.deleteTable("ledger")
+        } catch (e: ResourceNotFoundException) {
+            logger.info { "Table 'ledger' does not exist, nothing to delete" }
+        }
         init(capacity)
     }
 
@@ -73,7 +78,7 @@ class AsyncLedger {
         }
     }
 
-    suspend fun queryUserAccounts(userID: UserID): List<Account> {
+    suspend fun findAccountsByUserID(userID: UserID): List<Account> {
         val response = client.query("ledger") {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
@@ -125,7 +130,7 @@ class AsyncLedger {
             put("ledger") {
                 item {
                     "pk" from transfer.from.id
-                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "sk" from "trc:$timeStamp-${transfer.id.id}"
                     "accountID" from transfer.id.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
@@ -136,7 +141,7 @@ class AsyncLedger {
             put("ledger") {
                 item {
                     "pk" from transfer.to.id
-                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "sk" from "trc:$timeStamp-${transfer.id.id}"
                     "accountID" from transfer.id.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount

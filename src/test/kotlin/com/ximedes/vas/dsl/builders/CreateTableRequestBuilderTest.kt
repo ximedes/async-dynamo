@@ -1,12 +1,10 @@
-package com.ximedes.vas.dsl
+package com.ximedes.vas.dsl.builders
 
-import com.ximedes.vas.dsl.builders.CreateTableRequestBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.dynamodb.model.*
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.*
 
-internal class CreateTableTest {
+internal class CreateTableRequestBuilderTest {
 
     private fun dslRequest(tableName: String = "foo", init: CreateTableRequestBuilder.() -> Unit): CreateTableRequest {
         return CreateTableRequestBuilder(tableName).apply(init).build()
@@ -32,10 +30,10 @@ internal class CreateTableTest {
     fun `attribute definitions match`() {
         val sdkRequest = CreateTableRequest.builder()
             .attributeDefinitions(
-                AttributeDefinition.builder().attributeName("s1").attributeType(S).build(),
-                AttributeDefinition.builder().attributeName("s2").attributeType(S).build(),
-                AttributeDefinition.builder().attributeName("n1").attributeType(N).build(),
-                AttributeDefinition.builder().attributeName("b1").attributeType(B).build()
+                AttributeDefinition.builder().attributeName("s1").attributeType(ScalarAttributeType.S).build(),
+                AttributeDefinition.builder().attributeName("s2").attributeType(ScalarAttributeType.S).build(),
+                AttributeDefinition.builder().attributeName("n1").attributeType(ScalarAttributeType.N).build(),
+                AttributeDefinition.builder().attributeName("b1").attributeType(ScalarAttributeType.B).build()
             ).build()
         val dslRequest = dslRequest {
             attributes {
@@ -117,10 +115,10 @@ internal class CreateTableTest {
         val sdkRequest = CreateTableRequest.builder()
             .tableName("foo")
             .attributeDefinitions(
-                AttributeDefinition.builder().attributeName("myString1").attributeType(S).build(),
-                AttributeDefinition.builder().attributeName("myString2").attributeType(S).build(),
-                AttributeDefinition.builder().attributeName("myBool").attributeType(B).build(),
-                AttributeDefinition.builder().attributeName("myNumber").attributeType(N).build()
+                AttributeDefinition.builder().attributeName("myString1").attributeType(ScalarAttributeType.S).build(),
+                AttributeDefinition.builder().attributeName("myString2").attributeType(ScalarAttributeType.S).build(),
+                AttributeDefinition.builder().attributeName("myBool").attributeType(ScalarAttributeType.B).build(),
+                AttributeDefinition.builder().attributeName("myNumber").attributeType(ScalarAttributeType.N).build()
             )
             .keySchema(
                 KeySchemaElement.builder().attributeName("myString1").keyType(KeyType.HASH).build(),
@@ -154,5 +152,4 @@ internal class CreateTableTest {
         assertEquals(sdkRequest, dslRequest)
 
     }
-
 }

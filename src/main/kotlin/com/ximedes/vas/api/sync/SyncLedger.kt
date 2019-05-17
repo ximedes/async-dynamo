@@ -45,7 +45,7 @@ class SyncLedger {
         try {
             client.deleteTable("ledger")
         } catch (e: ResourceNotFoundException) {
-            // No problem
+            logger.info { "Table 'ledger' does not exist, nothing to delete" }
         }
         init(capacity)
     }
@@ -61,7 +61,7 @@ class SyncLedger {
         }
     }
 
-    fun queryUserAccounts(userID: UserID): List<Account> {
+    fun findAccountsByUserID(userID: UserID): List<Account> {
         val response = client.query("ledger") {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
@@ -127,7 +127,7 @@ class SyncLedger {
             put("ledger") {
                 item {
                     "pk" from transfer.from.id
-                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "sk" from "trc:$timeStamp-${transfer.id.id}"
                     "accountID" from transfer.id.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
@@ -138,7 +138,7 @@ class SyncLedger {
             put("ledger") {
                 item {
                     "pk" from transfer.to.id
-                    "sk" from "trc:$timeStamp-${transfer.id}"
+                    "sk" from "trc:$timeStamp-${transfer.id.id}"
                     "accountID" from transfer.id.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
