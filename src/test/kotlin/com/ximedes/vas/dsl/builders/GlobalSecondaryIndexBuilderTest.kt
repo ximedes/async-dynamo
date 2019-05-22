@@ -1,11 +1,9 @@
 package com.ximedes.vas.dsl.builders
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex
-import software.amazon.awssdk.services.dynamodb.model.Projection
-import software.amazon.awssdk.services.dynamodb.model.ProjectionType
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput
+import software.amazon.awssdk.services.dynamodb.model.*
 
 internal class GlobalSecondaryIndexBuilderTest {
 
@@ -18,37 +16,107 @@ internal class GlobalSecondaryIndexBuilderTest {
     }
 
     @Test
-    fun `index name`() {
-        val sdkGSI = GlobalSecondaryIndex.builder()
-            .indexName("foobar")
-            .build()
+    fun name() {
+        val sdkGSI = GlobalSecondaryIndex.builder().indexName("foobar").build()
         val dslGSI = dslGSI("foobar") {}
         assertEquals(sdkGSI.indexName(), dslGSI.indexName())
     }
 
-    @Test
-    fun throughput() {
-        val sdkGSI = GlobalSecondaryIndex.builder()
-            .provisionedThroughput(
-                ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(2L).build()
+    @Nested
+    inner class KeySchema {
+        @Test
+        fun singlePartitionKey() {
+            val sdkGSI = GlobalSecondaryIndex.builder().keySchema(
+                KeySchemaElement.builder().attributeName("pk").keyType(KeyType.HASH).build()
             ).build()
-        val dslGSI = dslGSI {
-            provisionedThroughput(1L, 2L)
+            val dslGSI = dslGSI("foobar") {
+                partitionKey("pk")
+            }
+            assertEquals(sdkGSI.keySchema(), dslGSI.keySchema())
         }
-        assertEquals(sdkGSI.provisionedThroughput(), dslGSI.provisionedThroughput())
+
+        @Test
+        fun partitionAndSortKey() {
+            val sdkGSI = GlobalSecondaryIndex.builder().keySchema(
+                KeySchemaElement.builder().attributeName("pk").keyType(KeyType.HASH).build(),
+                KeySchemaElement.builder().attributeName("sk").keyType(KeyType.RANGE).build()
+            ).build()
+            val dslGSI = dslGSI("foobar") {
+                partitionKey("pk")
+                sortKey("sk")
+            }
+            assertEquals(sdkGSI.keySchema(), dslGSI.keySchema())
+        }
     }
 
-    @Test
-    fun projection() {
-        val sdkGSI = GlobalSecondaryIndex.builder()
-            .projection(
-                Projection.builder().projectionType(ProjectionType.INCLUDE).nonKeyAttributes("nk1", "nk2").build()
-            ).build()
-        val dslGSI = dslGSI {
-            projection(ProjectionType.INCLUDE) {
-                nonKeyAttributes("nk1", "nk2")
+    @Nested
+    inner class Throughput {
+
+        @Test
+        fun explicitThroughputNoParent() {
+            val sdkGSI = GlobalSecondaryIndex.builder()
+                .provisionedThroughput(
+                    ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(2L).build()
+                ).build()
+            val dslGSI = dslGSI {
+                provisionedThroughput(1L, 2L)
             }
+            assertEquals(sdkGSI.provisionedThroughput(), dslGSI.provisionedThroughput())
         }
-        assertEquals(sdkGSI.projection(), dslGSI.projection())
+
+        @Test
+        fun `parent throughput is used when none explicitly set`() {
+            val parentThroughput = ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(2L).build()
+            val dslGSI = dslGSI(throughput = parentThroughput) {
+
+            }
+            assertEquals(parentThroughput, dslGSI.provisionedThroughput())
+        }
+
+        @Test
+        fun `parent throughput is ignored when it is also explicitly set`() {
+            val parentThroughput = ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(2L).build()
+            val expectedThroughput =
+                ProvisionedThroughput.builder().readCapacityUnits(9L).writeCapacityUnits(8L).build()
+            val dslGSI = dslGSI(throughput = parentThroughput) {
+                provisionedThroughput(9L, 8L)
+            }
+            assertEquals(expectedThroughput, dslGSI.provisionedThroughput())
+        }
+
     }
+
+    @Nested
+    inner class Projections {
+
+        @Test
+        fun include() {
+            val sdkGSI = GlobalSecondaryIndex.builder()
+                .projection(
+                    Projection.builder().projectionType(ProjectionType.INCLUDE).nonKeyAttributes("nk1", "nk2").build()
+                ).build()
+            val dslGSI = dslGSI {
+                projection(ProjectionType.INCLUDE) {
+                    nonKeyAttributes("nk1", "nk2")
+                }
+            }
+            assertEquals(sdkGSI.projection(), dslGSI.projection())
+        }
+
+        @Test
+        fun keysOnly() {
+            val sdkGSI = GlobalSecondaryIndex.builder()
+                .projection(
+                    Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build()
+                ).build()
+            val dslGSI = dslGSI {
+                projection(ProjectionType.KEYS_ONLY)
+            }
+            assertEquals(sdkGSI.projection(), dslGSI.projection())
+        }
+
+
+    }
+
+
 }

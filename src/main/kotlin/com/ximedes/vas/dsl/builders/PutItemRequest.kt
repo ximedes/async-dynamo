@@ -5,20 +5,24 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 
 @DynamoDbDSL
 class PutItemRequestBuilder(tableName: String) {
-    private val builder = PutItemRequest.builder().tableName(tableName)
+    private val _builder = PutItemRequest.builder().tableName(tableName)
 
-    fun build(): PutItemRequest = builder.build()
+    fun build(): PutItemRequest = _builder.build()
 
     fun item(init: ItemBuilder.() -> Unit) {
-        builder.item(ItemBuilder().apply(init).build())
+        _builder.item(ItemBuilder().apply(init).build())
     }
 
     fun condition(expression: String) {
-        builder.conditionExpression(expression)
+        _builder.conditionExpression(expression)
     }
 
-    fun attributes(init: ItemBuilder.() -> Unit) {
-        builder.expressionAttributeValues(ItemBuilder().apply(init).build())
+    fun attributeValues(init: ItemBuilder.() -> Unit) {
+        _builder.expressionAttributeValues(ItemBuilder().apply(init).build())
+    }
+
+    fun attributeNames(vararg names: Pair<String, String>) {
+        _builder.expressionAttributeNames(mapOf(*names))
     }
 
 

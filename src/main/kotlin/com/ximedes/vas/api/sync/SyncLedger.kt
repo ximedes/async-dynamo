@@ -65,7 +65,7 @@ class SyncLedger {
         val response = client.query("ledger") {
             useIndex("accounts")
             keyCondition("owner_id = :userId")
-            attributes {
+            attributeValues {
                 ":userId" from userID.id
             }
         }

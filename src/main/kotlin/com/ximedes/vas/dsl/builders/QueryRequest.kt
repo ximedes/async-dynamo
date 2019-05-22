@@ -17,7 +17,7 @@ class QueryRequestBuilder(tableName: String) {
         builder.keyConditionExpression(expression)
     }
 
-    fun attributes(init: ItemBuilder.() -> Unit) {
+    fun attributeValues(init: ItemBuilder.() -> Unit) {
         builder.expressionAttributeValues(ItemBuilder().apply(init).build())
     }
 }

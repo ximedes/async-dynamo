@@ -13,4 +13,20 @@ class GetBuilder(tableName: String) {
         _builder.key(ItemBuilder().apply(init).build())
     }
 
+    fun projection(expression: String) {
+        _builder.projectionExpression(expression)
+    }
+
+    /*
+            TODO can we improve this syntax?
+            Maybe something like {
+                project("#abc") where {
+                    "#a" is "bla"
+                }
+            }
+     */
+    fun attributeNames(vararg names: Pair<String, String>) {
+        _builder.expressionAttributeNames(mapOf(*names))
+    }
+
 }

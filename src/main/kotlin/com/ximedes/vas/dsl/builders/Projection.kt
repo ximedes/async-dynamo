@@ -8,8 +8,10 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType
 class ProjectionBuilder(type: ProjectionType) {
     private val _builder = Projection.builder().projectionType(type)
 
-    fun build() = _builder.build()
+    fun build(): Projection = _builder.build()
 
-    fun nonKeyAttributes(vararg names: String) = _builder.nonKeyAttributes(*names)
+    fun nonKeyAttributes(vararg names: String) {
+        _builder.nonKeyAttributes(*names)
+    }
 
 }
