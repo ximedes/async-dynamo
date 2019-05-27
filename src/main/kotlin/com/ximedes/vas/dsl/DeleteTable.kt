@@ -10,9 +10,7 @@ fun DynamoDbClient.deleteTable(
     tableName: String,
     init: DeleteTableRequestBuilder.() -> Unit = {}
 ): DeleteTableResponse {
-    val builder = DeleteTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = DeleteTableRequestBuilder(tableName).apply(init).build()
     return deleteTable(request)
 }
 
@@ -20,9 +18,7 @@ suspend fun DynamoDbAsyncClient.deleteTable(
     tableName: String,
     init: DeleteTableRequestBuilder.() -> Unit = {}
 ): DeleteTableResponse {
-    val builder = DeleteTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = DeleteTableRequestBuilder(tableName).apply(init).build()
     return deleteTable(request).await()
 }
 

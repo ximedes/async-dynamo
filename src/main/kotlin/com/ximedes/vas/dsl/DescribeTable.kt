@@ -10,9 +10,7 @@ fun DynamoDbClient.describeTable(
     tableName: String,
     init: DescribeTableRequestBuilder.() -> Unit = {}
 ): DescribeTableResponse {
-    val builder = DescribeTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = DescribeTableRequestBuilder(tableName).apply(init).build()
     return describeTable(request)
 }
 
@@ -20,9 +18,7 @@ suspend fun DynamoDbAsyncClient.describeTable(
     tableName: String,
     init: DescribeTableRequestBuilder.() -> Unit = {}
 ): DescribeTableResponse {
-    val builder = DescribeTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = DescribeTableRequestBuilder(tableName).apply(init).build()
     return describeTable(request).await()
 }
 

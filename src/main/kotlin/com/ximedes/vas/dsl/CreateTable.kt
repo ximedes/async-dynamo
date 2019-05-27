@@ -10,9 +10,7 @@ fun DynamoDbClient.createTable(
     tableName: String,
     init: CreateTableRequestBuilder.() -> Unit
 ): CreateTableResponse {
-    val builder = CreateTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = CreateTableRequestBuilder(tableName).apply(init).build()
     return createTable(request)
 }
 
@@ -20,9 +18,7 @@ suspend fun DynamoDbAsyncClient.createTable(
     tableName: String,
     init: CreateTableRequestBuilder.() -> Unit
 ): CreateTableResponse {
-    val builder = CreateTableRequestBuilder(tableName)
-    builder.init()
-    val request = builder.build()
+    val request = CreateTableRequestBuilder(tableName).apply(init).build()
     return createTable(request).await()
 }
 
