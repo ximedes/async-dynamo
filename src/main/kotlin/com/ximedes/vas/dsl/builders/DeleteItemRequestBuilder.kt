@@ -1,26 +1,23 @@
 package com.ximedes.vas.dsl.builders
 
 import com.ximedes.vas.dsl.DynamoDbDSL
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
 
 @DynamoDbDSL
-class UpdateItemRequestBuilder(tableName: String) {
-    private val _builder = UpdateItemRequest.builder().tableName(tableName)
+class DeleteItemRequestBuilder(tableName: String) {
+    private val _builder = DeleteItemRequest.builder().tableName(tableName)
 
-    fun build(): UpdateItemRequest = _builder.build()
+    fun build(): DeleteItemRequest = _builder.build()
 
-    fun update(expression: String) {
-        _builder.updateExpression(expression)
+
+    fun key(init: ItemBuilder.() -> Unit) {
+        _builder.key(ItemBuilder().apply(init).build())
     }
 
     fun condition(expression: String) {
         _builder.conditionExpression(expression)
-    }
-
-    fun key(init: ItemBuilder.() -> Unit) {
-        _builder.key(ItemBuilder().apply(init).build())
     }
 
     fun attributeValues(init: ItemBuilder.() -> Unit) {

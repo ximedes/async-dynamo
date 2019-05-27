@@ -3,55 +3,41 @@ package com.ximedes.vas.dsl.builders
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
 
-internal class PutItemRequestBuilderTest {
+internal class UpdateItemRequestBuilderTest {
 
-    private fun dslRequest(
-        tableName: String = "foo",
-        init: PutItemRequestBuilder.() -> Unit
-    ): PutItemRequest {
-        return PutItemRequestBuilder(tableName).apply(init).build()
-    }
+    private fun dslRequest(tableName: String = "foo", init: UpdateItemRequestBuilder.() -> Unit) =
+        UpdateItemRequestBuilder(tableName).apply(init).build()
 
     @Test
-    fun tableName() {
-        val sdkRequest = PutItemRequest.builder().tableName("table").build()
-        val dslRequest = dslRequest("table") {}
-        assertEquals(sdkRequest.tableName(), dslRequest.tableName())
+    fun update() {
+        val sdkRequest = UpdateItemRequest.builder().updateExpression("update").build()
+        val dslRequest = dslRequest { update("update") }
+        assertEquals(sdkRequest.updateExpression(), dslRequest.updateExpression())
     }
 
     @Test
     fun condition() {
-        val sdkRequest = PutItemRequest.builder().conditionExpression("condition").build()
-        val dslRequest = dslRequest {
-            condition("condition")
-        }
+        val sdkRequest = UpdateItemRequest.builder().conditionExpression("condition").build()
+        val dslRequest = dslRequest { condition("condition") }
         assertEquals(sdkRequest.conditionExpression(), dslRequest.conditionExpression())
     }
 
     @Test
-    fun item() {
-        val item = ItemBuilder().apply {
-            "string" from "a"
-            "int" from 2
-        }.build()
-        val sdkRequest = PutItemRequest.builder().item(item).build()
-        val dslRequest = dslRequest {
-            item {
-                "string" from "a"
-                "int" from 2
-            }
-        }
-        assertEquals(sdkRequest.item(), dslRequest.item())
+    fun key() {
+        val sdkRequest = UpdateItemRequest.builder().key(mapOf("a" to AttributeValue.builder().s("b").build())).build()
+        val dslRequest = dslRequest { key { "a" from "b" } }
+        assertEquals(sdkRequest.key(), dslRequest.key())
     }
+
 
     @Test
     fun attributeValues() {
         val sdkRequest =
-            PutItemRequest.builder().expressionAttributeValues(mapOf("a" to AttributeValue.builder().s("z").build()))
+            UpdateItemRequest.builder().expressionAttributeValues(mapOf("a" to AttributeValue.builder().s("z").build()))
                 .build()
         val dslRequest = dslRequest {
             attributeValues {
@@ -63,17 +49,16 @@ internal class PutItemRequestBuilderTest {
 
     @Test
     fun attributeNames() {
-        val sdkRequest = PutItemRequest.builder().expressionAttributeNames(mapOf("a" to "z")).build()
+        val sdkRequest = UpdateItemRequest.builder().expressionAttributeNames(mapOf("a" to "z")).build()
         val dslRequest = dslRequest {
             attributeNames("a" to "z")
         }
         assertEquals(sdkRequest.expressionAttributeNames(), dslRequest.expressionAttributeNames())
     }
 
-
     @Test
     fun returnConsumedCapacity() {
-        val sdkRequest = PutItemRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.INDEXES).build()
+        val sdkRequest = UpdateItemRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.INDEXES).build()
         val dslRequest = dslRequest {
             returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
         }
@@ -84,7 +69,7 @@ internal class PutItemRequestBuilderTest {
 
     @Test
     fun returnItemCollectionMetrics() {
-        val sdkRequest = PutItemRequest.builder()
+        val sdkRequest = UpdateItemRequest.builder()
             .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
             .build()
         val dslRequest = dslRequest {
