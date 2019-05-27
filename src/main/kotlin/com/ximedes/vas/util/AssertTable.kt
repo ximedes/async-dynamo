@@ -1,6 +1,8 @@
-package com.ximedes.vas.dsl
+package com.ximedes.vas.util
 
 import com.ximedes.vas.dsl.builders.CreateTableRequestBuilder
+import com.ximedes.vas.dsl.createTable
+import com.ximedes.vas.dsl.describeTable
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
