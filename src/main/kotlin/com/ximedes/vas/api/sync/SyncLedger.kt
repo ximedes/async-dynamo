@@ -63,7 +63,7 @@ class SyncLedger {
 
     fun findAccountsByUserID(userID: UserID): List<Account> {
         val response = client.query("ledger") {
-            useIndex("accounts")
+            indexName("accounts")
             keyCondition("owner_id = :userId")
             attributeValues {
                 ":userId" from userID.id
@@ -107,7 +107,7 @@ class SyncLedger {
                 update("SET headroom = headroom - :a")
 
                 condition("headroom >= :a")
-                attributes {
+                attributeValues {
                     ":a" from transfer.amount
                 }
 
@@ -119,7 +119,7 @@ class SyncLedger {
 
                 }
                 update("SET headroom = headroom + :a")
-                attributes {
+                attributeValues {
                     ":a" from transfer.amount
                 }
 

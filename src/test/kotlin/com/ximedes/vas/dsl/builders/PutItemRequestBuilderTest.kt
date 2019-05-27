@@ -4,10 +4,15 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics
 
 internal class PutItemRequestBuilderTest {
 
-    private fun dslRequest(tableName: String = "foo", init: PutItemRequestBuilder.() -> Unit): PutItemRequest {
+    private fun dslRequest(
+        tableName: String = "foo",
+        init: PutItemRequestBuilder.() -> Unit
+    ): PutItemRequest {
         return PutItemRequestBuilder(tableName).apply(init).build()
     }
 
@@ -54,6 +59,30 @@ internal class PutItemRequestBuilderTest {
             attributeNames("a" to "z")
         }
         assertEquals(sdkRequest.expressionAttributeNames(), dslRequest.expressionAttributeNames())
+    }
+
+
+    @Test
+    fun returnConsumedCapacity() {
+        val sdkRequest = PutItemRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.INDEXES).build()
+        val dslRequest = dslRequest {
+            returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
+        }
+        assertEquals(sdkRequest.returnConsumedCapacity(), dslRequest.returnConsumedCapacity())
+        assertEquals(ReturnConsumedCapacity.INDEXES, dslRequest.returnConsumedCapacity())
+    }
+
+
+    @Test
+    fun returnItemCollectionMetrics() {
+        val sdkRequest = PutItemRequest.builder()
+            .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
+            .build()
+        val dslRequest = dslRequest {
+            returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
+        }
+        assertEquals(sdkRequest.returnItemCollectionMetrics(), dslRequest.returnItemCollectionMetrics())
+        assertEquals(ReturnItemCollectionMetrics.SIZE, dslRequest.returnItemCollectionMetrics())
     }
 
 

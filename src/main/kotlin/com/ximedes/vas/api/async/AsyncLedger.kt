@@ -80,7 +80,7 @@ class AsyncLedger {
 
     suspend fun findAccountsByUserID(userID: UserID): List<Account> {
         val response = client.query("ledger") {
-            useIndex("accounts")
+            indexName("accounts")
             keyCondition("owner_id = :userId")
             attributeValues {
                 ":userId" from userID.id
@@ -110,7 +110,7 @@ class AsyncLedger {
                 update("SET headroom = headroom - :a")
 
                 condition("headroom >= :a")
-                attributes {
+                attributeValues {
                     ":a" from transfer.amount
                 }
 
@@ -122,7 +122,7 @@ class AsyncLedger {
 
                 }
                 update("SET headroom = headroom + :a")
-                attributes {
+                attributeValues {
                     ":a" from transfer.amount
                 }
 
