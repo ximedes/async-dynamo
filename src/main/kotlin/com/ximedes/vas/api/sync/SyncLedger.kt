@@ -1,7 +1,7 @@
 package com.ximedes.vas.api.sync
 
+import com.ximedes.dynamodb.dsl.*
 import com.ximedes.vas.domain.*
-import com.ximedes.vas.dsl.*
 import com.ximedes.vas.util.assertTable
 import mu.KotlinLogging
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
