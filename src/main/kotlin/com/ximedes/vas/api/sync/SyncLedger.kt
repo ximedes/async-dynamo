@@ -129,7 +129,7 @@ class SyncLedger {
                 item {
                     "pk" from transfer.from.id
                     "sk" from "trc:$timeStamp-${transfer.id.id}"
-                    "accountID" from transfer.id.id
+                    "transferID" from transfer.id.id
                     "type" from "DEBIT"
                     "amount" from transfer.amount
                     "description" from transfer.description
@@ -140,7 +140,7 @@ class SyncLedger {
                 item {
                     "pk" from transfer.to.id
                     "sk" from "trc:$timeStamp-${transfer.id.id}"
-                    "accountID" from transfer.id.id
+                    "transferID" from transfer.id.id
                     "type" from "CREDIT"
                     "amount" from transfer.amount
                     "description" from transfer.description

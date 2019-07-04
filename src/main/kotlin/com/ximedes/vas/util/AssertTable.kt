@@ -26,12 +26,13 @@ fun DynamoDbClient.assertTable(
             TableStatus.CREATING
         }
         if (status != TableStatus.ACTIVE) {
-            logger.info { "Table $tableName is in status $status, checking again later" }
-            Thread.sleep(delayMS)
             delayMS = (2 * delayMS).coerceAtMost(4000L)
+            logger.info { "Table $tableName is in status $status, checking again in $delayMS ms" }
+            Thread.sleep(delayMS)
         }
 
     } while (status != TableStatus.ACTIVE)
+    logger.info { "Table $tableName is ACTIVE" }
 
 }
 
